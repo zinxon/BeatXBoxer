@@ -16,6 +16,10 @@
     {
       "key": "FinishMenu",
       "value": "FinishMenu"
+    },
+    {
+      "key": "PauseMenu",
+      "value": "PauseMenu"
     }
   ]
 }

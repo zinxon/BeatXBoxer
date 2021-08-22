@@ -6,7 +6,17 @@ using UnityEngine;
 
 public class ResultMenu : UIBaseClass
 {
-    private TextMeshProUGUI perfectValueTxt, greatValueTxt, missValueTxt, totalComboTxt;
+    private TextMeshProUGUI perfectValueTxt, greatValueTxt, missValueTxt, totalComboTxt, maxScoreTxt;
+
+    private void OnEnable() {
+        LevelManager levelMgr = LevelManager.GetInstance();
+
+        if(perfectValueTxt) perfectValueTxt.text = levelMgr.PerfectValue.ToString();
+        if(greatValueTxt) greatValueTxt.text = levelMgr.GreatBValue.ToString();
+        if(missValueTxt) missValueTxt.text = levelMgr.MissValue.ToString();
+        if(totalComboTxt) totalComboTxt.text = (levelMgr.PerfectValue + levelMgr.GreatBValue).ToString();
+        if(maxScoreTxt) maxScoreTxt.text = levelMgr.ScoreValue.ToString();
+    }
 
     private void Start()
     {
@@ -14,6 +24,7 @@ public class ResultMenu : UIBaseClass
         greatValueTxt = UnityHelper.FindChildNode(gameObject, "GreatValueTxt").GetComponent<TextMeshProUGUI>();
         missValueTxt = UnityHelper.FindChildNode(gameObject, "MissValueTxt").GetComponent<TextMeshProUGUI>();
         totalComboTxt = UnityHelper.FindChildNode(gameObject, "TotalComboTxt").GetComponent<TextMeshProUGUI>();
+        maxScoreTxt = UnityHelper.FindChildNode(gameObject, "MaxScoreTxt").GetComponent<TextMeshProUGUI>();
     
         LevelManager levelMgr = LevelManager.GetInstance();
 
@@ -21,5 +32,19 @@ public class ResultMenu : UIBaseClass
         greatValueTxt.text = levelMgr.GreatBValue.ToString();
         missValueTxt.text = levelMgr.MissValue.ToString();
         totalComboTxt.text = (levelMgr.PerfectValue + levelMgr.GreatBValue).ToString();
+        maxScoreTxt.text = levelMgr.ScoreValue.ToString();
+
+        RigisterButtonOnClick("ExitBtn", p => {
+            GameManager.GetInstance().BluetoothDisConnect();
+            GameManager.GetInstance().SetGameplayMode(GameplayModeEnum.Normal);
+            GameManager.GetInstance().LoadScene("TitleScene", p => ShowUI("TitleMenu"));
+            CloseUI("ResultMenu");
+            CloseUI("GameplayMenu");
+        });
+
+        RigisterButtonOnClick("RetryBtn", p => {
+            GameManager.GetInstance().LoadScene("GameplayScene");
+            CloseUI("ResultMenu");
+        });
     }
 }

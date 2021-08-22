@@ -98,7 +98,7 @@ public class NoteController : MonoBehaviour
 
         if (hitOffset >= 0)
         {
-            if (hitOffset >= 9000 && hitOffset <= 13500)
+            if (hitOffset >= 9500 && hitOffset <= 12500)
             {
                 hitLevel = 2;
             }

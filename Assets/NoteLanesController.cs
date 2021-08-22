@@ -33,32 +33,51 @@ public class NoteLanesController : MonoBehaviour
 
     private void InputSetting()
     {
-        if(trackedNotes.Count <= 0)
+        if (trackedNotes.Count <= 0)
             return;
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            if (trackedNotes.Peek().NoteID == 1)
-                CheckNoteHit();
+            // if (trackedNotes.Peek().NoteID == 1)
+            //     CheckNoteHit();
+            CheckNodeID("1");
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            if (trackedNotes.Peek().NoteID == 2)
-                CheckNoteHit();
+            // if (trackedNotes.Peek().NoteID == 2)
+            //     CheckNoteHit();
+            CheckNodeID("2");
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            if (trackedNotes.Peek().NoteID == 3)
-                CheckNoteHit();
+            // if (trackedNotes.Peek().NoteID == 3)
+            //     CheckNoteHit();
+            CheckNodeID("3");
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            if (trackedNotes.Peek().NoteID == 4)
-                CheckNoteHit();
+            // if (trackedNotes.Peek().NoteID == 4)
+            //     CheckNoteHit();
+            CheckNodeID("4");
         }
+    }
+
+    public void CheckNodeID(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return;
+
+        if (trackedNotes.Count <= 0)
+            return;
+
+        int count = 0;
+        int.TryParse(id, out count);
+
+        if (trackedNotes.Peek().NoteID == count)
+            CheckNoteHit();
     }
 
     private void CheckNextNoteForSpawn()
@@ -98,7 +117,7 @@ public class NoteLanesController : MonoBehaviour
         if (trackedNotes.Count > 0)
         {
             NoteController note = trackedNotes.Peek();
-            if (note.HitOffset > -10000)
+            if (note.HitOffset > 4000)
             {
                 //MusicPlayer.GetInstance().PlayMusicplayerSource();
                 trackedNotes.Dequeue();
@@ -111,13 +130,12 @@ public class NoteLanesController : MonoBehaviour
                     if (hitLevel == 2)
                     {
                         LevelManager.GetInstance().SetLevelScore(2);
-                        // LevelManager.GetInstance().SetScore(true);
+                        LevelManager.GetInstance().SetScore(true);
                         LevelManager.GetInstance().SetMessageText(2);
-                        Debug.Log(2);
                     }
                     else
                     {
-                        // LevelManager.GetInstance().SetScore(false);
+                        LevelManager.GetInstance().SetScore(false);
                         LevelManager.GetInstance().SetLevelScore(1);
                         LevelManager.GetInstance().SetMessageText(1);
                     }

@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Headers;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,6 +24,7 @@ public class LevelManager : UnitySingleton<LevelManager>
     public bool isResult = false;
     private int disableNoteCount = 0;
     public int totalNoteCount = 0;
+    [SerializeField] private List<NoteLanesController> lanesList = new List<NoteLanesController>();
 
 
     private void Start()
@@ -32,15 +35,17 @@ public class LevelManager : UnitySingleton<LevelManager>
         if (comboTxt)
             comboTxt.text = "0";
 
-        // scoreTxt = GameObject.Find("ScoreTxt").GetComponent<TextMeshProUGUI>();
-        // if (scoreTxt)
-        //     scoreTxt.text = "Score: 0";
+        scoreTxt = GameObject.Find("ScoreTxt").GetComponent<TextMeshProUGUI>();
+        if (scoreTxt)
+            scoreTxt.text = "Score: 0";
 
         msgTxt = GameObject.Find("MsgTxt").GetComponent<TextMeshPro>();
         if (msgTxt)
             msgTxt.enabled = false;
 
         msgTimer = 0;
+
+        lanesList = FindObjectsOfType<NoteLanesController>().ToList();
     }
 
     private void Update()
@@ -135,6 +140,12 @@ public class LevelManager : UnitySingleton<LevelManager>
 
     public void SetDisableNote(){
         disableNoteCount++;
+    }
+
+    public void SendMessageToNoteLanesController(string msg){
+        foreach(NoteLanesController lanes in lanesList){
+            lanes.CheckNodeID(msg);
+        }
     }
 }
 
