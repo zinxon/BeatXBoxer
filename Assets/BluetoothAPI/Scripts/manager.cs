@@ -5,37 +5,46 @@ using UnityEngine.UI;
 using ArduinoBluetoothAPI;
 using System;
 using System.Text;
+using UnityEngine.SceneManagement;
 
-public class manager : MonoBehaviour {
+public class manager : MonoBehaviour
+{
 
-	// Use this for initialization
-	BluetoothHelper bluetoothHelper;
-    BluetoothHelper bluetoothHelper2;
-	string deviceName;
+    // Use this for initialization
+    BluetoothHelper bluetoothHelper;
+    // BluetoothHelper bluetoothHelper2;
+    string deviceName;
 
-	//public Text text;
+    //public Text text;
 
-	//public GameObject sphere;
+    //public GameObject sphere;
 
-	string received_message;
+    string received_message;
 
-	void Start () {
-		deviceName = "BB3"; //bluetooth should be turned ON;
-		try
-		{	
-			bluetoothHelper = BluetoothHelper.GetInstance(deviceName);
-			bluetoothHelper.OnConnected += OnConnected;
-			bluetoothHelper.OnConnectionFailed += OnConnectionFailed;
-			bluetoothHelper.OnDataReceived += OnMessageReceived; //read the data
+    void Start()
+    {
+        deviceName = "BT05"; //bluetooth should be turned ON;
+        try
+        {
+            BluetoothHelper.BLE = true;
+            bluetoothHelper = BluetoothHelper.GetInstance(deviceName);
+            if (Application.platform == RuntimePlatform.Android && !bluetoothHelper.IsBluetoothEnabled())
+            {
+                bluetoothHelper.EnableBluetooth(true);
+            }
+            bluetoothHelper.OnConnected += OnConnected;
+            bluetoothHelper.OnConnectionFailed += OnConnectionFailed;
+             bluetoothHelper.OnScanEnded += OnScanEnded;
+            bluetoothHelper.OnDataReceived += OnMessageReceived; //read the data
 
             bluetoothHelper.setFixedLengthBasedStream(1); //receiving every 3 characters together
-			bluetoothHelper.setTerminatorBasedStream("\n"); //delimits received messages based on \n char
-			//if we received "Hi\nHow are you?"
-			//then they are 2 messages : "Hi" and "How are you?"
+            bluetoothHelper.setTerminatorBasedStream("\n"); //delimits received messages based on \n char
+                                                            //if we received "Hi\nHow are you?"
+                                                            //then they are 2 messages : "Hi" and "How are you?"
+            // bluetoothHelper.ScanNearbyDevices();
 
-			
-			// bluetoothHelper.setLengthBasedStream();
-			/*
+            // bluetoothHelper.setLengthBasedStream();
+            /*
 			will received messages based on the length provided, this is useful in transfering binary data
 			if we received this message (byte array) :
 			{0x55, 0x55, 0, 3, 'a', 'b', 'c', 0x55, 0x55, 0, 9, 'i', ' ', 'a', 'm', ' ', 't', 'o', 'n', 'y'}
@@ -83,136 +92,184 @@ public class manager : MonoBehaviour {
 				delete [] data; <--dont forget to clear the dynamic allocation!!!
 			}
 			*/
-			
-            LinkedList<BluetoothDevice> ds = bluetoothHelper.getPairedDevicesList();
 
-            Debug.Log(ds);
-			// if(bluetoothHelper.isDevicePaired())
-			// 	sphere.GetComponent<Renderer>().material.color = Color.blue;
-			// else
-			// 	sphere.GetComponent<Renderer>().material.color = Color.grey;
-		}
-		catch (Exception ex) 
-		{
-			// sphere.GetComponent<Renderer>().material.color = Color.yellow;
-			Debug.Log (ex.Message);
-			//text.text = ex.Message;
-			//BlueToothNotEnabledException == bluetooth Not turned ON
-			//BlueToothNotSupportedException == device doesn't support bluetooth
-			//BlueToothNotReadyException == the device name you chose is not paired with your android or you are not connected to the bluetooth device;
-			//								bluetoothHelper.Connect () returned false;
-		}
-	}
+            // bluetoothHelper.ScanNearbyDevices();
+            // LinkedList<BluetoothDevice> ds = bluetoothHelper.getPairedDevicesList();
+            // Debug.Log(ds);
+            // if(bluetoothHelper.isDevicePaired())
+            // 	sphere.GetComponent<Renderer>().material.color = Color.blue;
+            // else
+            // 	sphere.GetComponent<Renderer>().material.color = Color.grey;
+        }
+        catch (Exception ex)
+        {
+            // sphere.GetComponent<Renderer>().material.color = Color.yellow;
+            //Debug.Log (ex.Message);
+            //text.text = ex.Message;
+            //BlueToothNotEnabledException == bluetooth Not turned ON
+            //BlueToothNotSupportedException == device doesn't support bluetooth
+            //BlueToothNotReadyException == the device name you chose is not paired with your android or you are not connected to the bluetooth device;
+            //								bluetoothHelper.Connect () returned false;
+        }
+    }
 
-	IEnumerator blinkSphere()
-	{
-		// sphere.GetComponent<Renderer>().material.color = Color.cyan;
-		yield return new WaitForSeconds(0.5f);
-		// sphere.GetComponent<Renderer>().material.color = Color.green;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-		/*
+    IEnumerator blinkSphere()
+    {
+        // sphere.GetComponent<Renderer>().material.color = Color.cyan;
+        yield return new WaitForSeconds(0.5f);
+        // sphere.GetComponent<Renderer>().material.color = Color.green;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+        /*
 		//Synchronous method to receive messages
 		if(bluetoothHelper != null)
 		if (bluetoothHelper.Available)
 			received_message = bluetoothHelper.Read ();
 		*/
 
-		if(bluetoothHelper.isConnected()){
-			if(GameManager.GetInstance().HasBluetoothConnect == false)
-				GameManager.GetInstance().SetHasBluetoothConnect(true);
-		} else {
-			if(GameManager.GetInstance().HasBluetoothConnect == true)
-				GameManager.GetInstance().SetHasBluetoothConnect(false);
-		}
-	}
-
-	//Asynchronous method to receive messages
-	void OnMessageReceived()
-	{
-		//StartCoroutine(blinkSphere());
-        received_message = bluetoothHelper.Read();
-		LevelManager.GetInstance().SendMessageToNoteLanesController(received_message);
-        Debug.Log(received_message);
-		//text.text = received_message;
-		Debug.Log(received_message);
-	}
-
-	void OnConnected()
-	{
-		// sphere.GetComponent<Renderer>().material.color = Color.green;
-		try{
-			bluetoothHelper.StartListening ();
-
-            bluetoothHelper2 = BluetoothHelper.GetNewInstance();
-            bluetoothHelper2.OnScanEnded += ScanEnded2;
-            bluetoothHelper2.ScanNearbyDevices();
-		}catch(Exception ex){
-			Debug.Log(ex.Message);
-		}
-			
-	}
-
-    private void ScanEnded2(LinkedList<BluetoothDevice> devices){
-        Debug.Log(devices.Count);
+        if (bluetoothHelper.isConnected())
+        {
+            if (GameManager.GetInstance().HasBluetoothConnect == false)
+                GameManager.GetInstance().SetHasBluetoothConnect(true);
+        }
+        else
+        {
+            if (GameManager.GetInstance().HasBluetoothConnect == true)
+                GameManager.GetInstance().SetHasBluetoothConnect(false);
+        }
     }
 
-	void OnConnectionFailed()
-	{
-		// sphere.GetComponent<Renderer>().material.color = Color.red;
-		Debug.Log("Connection Failed");
-	}
+    //Asynchronous method to receive messages
+    void OnMessageReceived()
+    {
+        //StartCoroutine(blinkSphere());
+        received_message = bluetoothHelper.Read();
+        if (SceneManager.GetActiveScene().name == "GameplayScene")
+            LevelManager.GetInstance().SendMessageToNoteLanesController(received_message);
+        Debug.Log(received_message);
+        //text.text = received_message;
+    }
 
-	public void BluetoothConnect(){
-		if(!bluetoothHelper.isConnected()){
-			if(bluetoothHelper.isDevicePaired())
-				bluetoothHelper.Connect ();
-		}
-	}
+    void OnConnected()
+    {
+        // sphere.GetComponent<Renderer>().material.color = Color.green;
+        try
+        {
+            Debug.Log("Connected");
+            bluetoothHelper.StartListening();
+            // bluetoothHelper2 = BluetoothHelper.GetNewInstance();
+            //bluetoothHelper2.OnScanEnded += ScanEnded2;
+            // bluetoothHelper.ScanNearbyDevices();
+        }
+        catch (Exception ex)
+        {
+            //Debug.Log(ex.Message);
+        }
 
-	public void BluetoothDisconnect(){
-		if(bluetoothHelper.isConnected())
-			bluetoothHelper.Disconnect ();
-	}
+    }
 
-	//Call this function to emulate message receiving from bluetooth while debugging on your PC.
-	void OnGUI()
-	{
-		// if(bluetoothHelper!=null)
-		// 	bluetoothHelper.DrawGUI();
-		// else 
-		// return;
+    private void ScanEnded2(LinkedList<BluetoothDevice> devices)
+    {
+        //Debug.Log(devices.Count);
+    }
 
-		// if(!bluetoothHelper.isConnected())
-		// if(GUI.Button(new Rect(Screen.width/2-Screen.width/10, Screen.height/10, Screen.width/5, Screen.height/10), "Connect"))
-		// {
-		// 	if(bluetoothHelper.isDevicePaired())
-		// 		bluetoothHelper.Connect (); // tries to connect
-		// 	// else
-		// 		// sphere.GetComponent<Renderer>().material.color = Color.magenta;
-		// }
+    void OnConnectionFailed()
+    {
+        // sphere.GetComponent<Renderer>().material.color = Color.red;
+        //Debug.Log("Connection Failed");
+    }
 
-		// if(bluetoothHelper.isConnected())
-		// if(GUI.Button(new Rect(Screen.width/2-Screen.width/10, Screen.height - 2*Screen.height/10, Screen.width/5, Screen.height/10), "Disconnect"))
-		// {
-		// 	bluetoothHelper.Disconnect ();
-		// 	// sphere.GetComponent<Renderer>().material.color = Color.blue;
-		// }
+     private void OnScanEnded(LinkedList<BluetoothDevice> devices){
+        Debug.Log("Found " + devices.Count);
+        if(devices.Count == 0){
+            bluetoothHelper.ScanNearbyDevices();
+            return;
+        }
+                Debug.Log("End Scaning");
+        try
+        {
+            bluetoothHelper.setDeviceName(deviceName);
+            bluetoothHelper.Connect();
+            Debug.Log("Connecting on scan ended.");
+        }catch(Exception ex)
+        {
+            Debug.Log(ex.Message);
+        }
 
-		// if(bluetoothHelper.isConnected())
-		// if(GUI.Button(new Rect(Screen.width/2-Screen.width/10, Screen.height/10, Screen.width/5, Screen.height/10), "Send text"))
-		// {
-		// 	// bluetoothHelper.SendData(new Byte[] {0, 0, 85, 0, 85});
+    }
+
+    public void BluetoothConnect()
+    {
+        if (!bluetoothHelper.isConnected())
+        {
+            if (!bluetoothHelper.isDevicePaired())
+            {
+                bluetoothHelper.ScanNearbyDevices();
+            //  bluetoothHelper.setDeviceName(deviceName);
+                Debug.Log("Start Scaning");
+            }
+                // bluetoothHelper.setDeviceName(deviceName);
+                // Debug.Log(bluetoothHelper.isDevicePaired());
+            // if (bluetoothHelper.isDevicePaired())
+            // {
+                 bluetoothHelper.setDeviceName(deviceName);
+                bluetoothHelper.Connect();
+                Debug.Log("Connecting");
+            // }
+                // bluetoothHelper.Connect();
+                // Debug.Log("Connecting");
+        }
+    }
+
+    public void BluetoothDisconnect()
+    {
+        if (bluetoothHelper.isConnected())
+        {
+            bluetoothHelper.Disconnect();
+            Debug.Log("Disconnected");
+        }
+
+    }
+
+    //Call this function to emulate message receiving from bluetooth while debugging on your PC.
+    void OnGUI()
+    {
+        // if(bluetoothHelper!=null)
+        // 	bluetoothHelper.DrawGUI();
+        // else 
+        // return;
+
+        // if(!bluetoothHelper.isConnected())
+        // if(GUI.Button(new Rect(Screen.width/2-Screen.width/10, Screen.height/10, Screen.width/5, Screen.height/10), "Connect"))
+        // {
+        // 	if(bluetoothHelper.isDevicePaired())
+        // 		bluetoothHelper.Connect (); // tries to connect
+        // 	// else
+        // 		// sphere.GetComponent<Renderer>().material.color = Color.magenta;
+        // }
+
+        // if(bluetoothHelper.isConnected())
+        // if(GUI.Button(new Rect(Screen.width/2-Screen.width/10, Screen.height - 2*Screen.height/10, Screen.width/5, Screen.height/10), "Disconnect"))
+        // {
+        // 	bluetoothHelper.Disconnect ();
+        // 	// sphere.GetComponent<Renderer>().material.color = Color.blue;
+        // }
+
+        // if(bluetoothHelper.isConnected())
+        // if(GUI.Button(new Rect(Screen.width/2-Screen.width/10, Screen.height/10, Screen.width/5, Screen.height/10), "Send text"))
+        // {
+        // 	// bluetoothHelper.SendData(new Byte[] {0, 0, 85, 0, 85});
         //     // bluetoothHelper.SendData("This is a very long long long long text");
-		// }
-	}
+        // }
+    }
 
-	void OnDestroy()
-	{
-		if(bluetoothHelper!=null)
-		bluetoothHelper.Disconnect ();
-	}
+    void OnDestroy()
+    {
+        if (bluetoothHelper != null)
+            bluetoothHelper.Disconnect();
+    }
 }
